@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Props = {
   orderId: string;
@@ -48,10 +49,12 @@ export function OrderActions({
     router.refresh();
   }
 
-  if (!runnerAction && !canCancel) return null;
+  const canEdit = isCustomer && status === "PENDING";
+
+  if (!runnerAction && !canCancel && !canEdit) return null;
 
   return (
-    <div className="flex gap-3">
+    <div className="flex flex-wrap gap-3">
       {runnerAction && (
         <button
           onClick={() => doAction(runnerAction.action)}
@@ -60,6 +63,11 @@ export function OrderActions({
         >
           {loading ? "Updating…" : runnerAction.label}
         </button>
+      )}
+      {canEdit && (
+        <Link href={`/orders/${orderId}/edit`} className="btn-secondary px-6 py-3">
+          Edit Order
+        </Link>
       )}
       {canCancel && (
         <button
