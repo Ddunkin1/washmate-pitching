@@ -45,7 +45,7 @@ export default function NewOrderPage() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  const estimatedPrice = parseFloat(form.weight || "1") * 50;
+  const estimatedPrice = parseFloat(form.weight || "1") * 25;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -171,7 +171,7 @@ export default function NewOrderPage() {
                   value={form.weight}
                   onChange={handleChange}
                 />
-                <p className="mt-1 text-xs text-gray-400">₱50 per kilogram</p>
+                <p className="mt-1 text-xs text-gray-400">₱25 per kilogram</p>
               </div>
               <div>
                 <label className="label">Preferred Pickup Time</label>
@@ -212,7 +212,7 @@ export default function NewOrderPage() {
                 ₱{estimatedPrice.toFixed(2)}
               </p>
               <p className="text-xs text-gray-400">
-                {form.weight} kg × ₱50/kg
+                {form.weight} kg × ₱25/kg
               </p>
             </div>
             <button
