@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String
+  role        String   @default("CUSTOMER")
+  studentId   String?
+  dormitory   String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ordersAsCustomer Order[]  @relation("CustomerOrders")
+  ordersAsRunner   Order[]  @relation("RunnerOrders")
+  reviewsGiven     Review[] @relation("ReviewsGiven")
+  reviewsReceived  Review[] @relation("ReviewsReceived")
+}
+
+model Order {
+  id                  String    @id @default(cuid())
+  customerId          String
+  runnerId            String?
+  status              String    @default("PENDING")
+  items               String
+  specialInstructions String?
+  pickupLocation      String
+  deliveryLocation    String
+  scheduledPickup     DateTime?
+  price               Float     @default(0)
+  weight              Float?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  customer User    @relation("CustomerOrders", fields: [customerId], references: [id])
+  runner   User?   @relation("RunnerOrders", fields: [runnerId], references: [id])
+  review   Review?
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  orderId    String   @unique
+  reviewerId String
+  revieweeId String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  order    Order @relation(fields: [orderId], references: [id])
+  reviewer User  @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  reviewee User  @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+}
