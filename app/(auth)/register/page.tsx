@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ShirtIcon, AlertCircleIcon } from "lucide-react";
+import { ShirtIcon, AlertCircleIcon, MailCheckIcon } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 function RegisterForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const defaultRole = searchParams.get("role") || "CUSTOMER";
 
   const [role, setRole] = useState(defaultRole);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -33,24 +34,62 @@ function RegisterForm() {
       setError("Passwords do not match.");
       return;
     }
+    if (form.password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
     setLoading(true);
     setError("");
 
-    const res = await fetch("/api/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, role }),
+    const supabase = createClient();
+    const { error: signUpError } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        data: {
+          name: form.name,
+          role: role,
+          studentId: form.studentId,
+          dormitory: form.dormitory,
+          phone: form.phone,
+        },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      setError(data.error || "Registration failed.");
+    if (signUpError) {
+      setError(signUpError.message);
       setLoading(false);
       return;
     }
 
-    router.push("/login?registered=1");
+    setSent(true);
+  }
+
+  if (sent) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 px-4">
+        <div className="w-full max-w-md text-center">
+          <div className="card p-10">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <MailCheckIcon className="h-8 w-8 text-green-600" />
+            </div>
+            <h2 className="mt-4 text-2xl font-bold text-gray-900">Check your email</h2>
+            <p className="mt-2 text-gray-500">
+              We sent a verification link to{" "}
+              <span className="font-semibold text-gray-800">{form.email}</span>.
+              Click the link to activate your account.
+            </p>
+            <p className="mt-4 text-xs text-gray-400">
+              Didn&apos;t receive it? Check your spam folder.
+            </p>
+            <Link href="/login" className="btn-secondary mt-6 w-full">
+              Back to Sign In
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -68,7 +107,6 @@ function RegisterForm() {
         </div>
 
         <div className="card p-8">
-          {/* Role Toggle */}
           <div className="mb-6 flex rounded-xl border border-gray-200 p-1 bg-gray-50">
             <button
               type="button"
@@ -198,15 +236,11 @@ function RegisterForm() {
               disabled={loading}
               className={`w-full py-3 mt-2 ${
                 role === "RUNNER"
-                  ? "inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
+                  ? "inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-green-700 disabled:opacity-50 transition-colors"
                   : "btn-primary"
               }`}
             >
-              {loading
-                ? "Creating account…"
-                : role === "RUNNER"
-                ? "Join as Runner"
-                : "Create Account"}
+              {loading ? "Creating account…" : role === "RUNNER" ? "Join as Runner" : "Create Account"}
             </button>
           </form>
         </div>

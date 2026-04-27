@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/session";
 import { Sidebar } from "@/components/shared/sidebar";
 
 export default async function MainLayout({
@@ -8,15 +7,19 @@ export default async function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const user = await getCurrentUser();
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/login");
   }
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Sidebar />
+      <Sidebar
+        userName={user.name}
+        userEmail={user.email}
+        userRole={user.role}
+      />
       <main className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-5xl px-6 py-8">{children}</div>
       </main>

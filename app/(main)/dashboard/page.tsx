@@ -1,23 +1,18 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/utils";
-import {
-  PlusCircleIcon,
-  BriefcaseIcon,
-  ClipboardListIcon,
-  WalletIcon,
-} from "lucide-react";
+import { PlusCircleIcon, BriefcaseIcon, ClipboardListIcon, WalletIcon } from "lucide-react";
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
-  const isRunner = session?.user?.role === "RUNNER";
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const isRunner = user.role === "RUNNER";
 
   const orders = await db.order.findMany({
-    where: isRunner
-      ? { runnerId: session!.user.id }
-      : { customerId: session!.user.id },
+    where: isRunner ? { runnerId: user.id } : { customerId: user.id },
     include: {
       customer: { select: { name: true, dormitory: true } },
       runner: { select: { name: true } },
@@ -43,7 +38,7 @@ export default async function DashboardPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Welcome back, {session?.user?.name?.split(" ")[0]}!
+            Welcome back, {user.name.split(" ")[0]}!
           </h1>
           <p className="mt-1 text-sm text-gray-500">
             {isRunner
@@ -65,7 +60,6 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* Stats */}
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
         {isRunner ? (
           <>
@@ -144,7 +138,6 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* Recent Orders */}
       <div className="card">
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <h2 className="font-semibold text-gray-900">Recent Orders</h2>
@@ -180,9 +173,7 @@ export default async function DashboardPage() {
                   <p className="text-sm font-medium text-gray-900">
                     {order.pickupLocation} → {order.deliveryLocation}
                   </p>
-                  <p className="mt-0.5 text-xs text-gray-400">
-                    {formatDate(order.createdAt)}
-                  </p>
+                  <p className="mt-0.5 text-xs text-gray-400">{formatDate(order.createdAt)}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-semibold text-gray-700">

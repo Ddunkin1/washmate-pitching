@@ -1,21 +1,22 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 
-export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+async function getUser() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  return db.user.findUnique({ where: { supabaseId: user.id } });
+}
 
-  const where =
-    session.user.role === "RUNNER"
-      ? { runnerId: session.user.id }
-      : { customerId: session.user.id };
+export async function GET() {
+  const user = await getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const orders = await db.order.findMany({
-    where,
+    where: user.role === "RUNNER"
+      ? { runnerId: user.id }
+      : { customerId: user.id },
     include: {
       customer: { select: { id: true, name: true, dormitory: true, phone: true } },
       runner: { select: { id: true, name: true, phone: true } },
@@ -27,20 +28,13 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "CUSTOMER") {
+  const user = await getUser();
+  if (!user || user.role !== "CUSTOMER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await req.json();
-  const {
-    items,
-    specialInstructions,
-    pickupLocation,
-    deliveryLocation,
-    scheduledPickup,
-    weight,
-  } = body;
+  const { items, specialInstructions, pickupLocation, deliveryLocation, scheduledPickup, weight } = body;
 
   if (!items || !pickupLocation || !deliveryLocation) {
     return NextResponse.json(
@@ -54,7 +48,7 @@ export async function POST(req: Request) {
 
   const order = await db.order.create({
     data: {
-      customerId: session.user.id,
+      customerId: user.id,
       items: JSON.stringify(items),
       specialInstructions: specialInstructions || null,
       pickupLocation,

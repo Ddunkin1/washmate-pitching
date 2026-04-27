@@ -1,16 +1,20 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
+
+async function getUser() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  return db.user.findUnique({ where: { supabaseId: user.id } });
+}
 
 export async function GET(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const user = await getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const order = await db.order.findUnique({
     where: { id: params.id },
@@ -21,18 +25,14 @@ export async function GET(
     },
   });
 
-  if (!order) {
-    return NextResponse.json({ error: "Order not found." }, { status: 404 });
-  }
+  if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 });
 
-  const isOwner =
-    order.customerId === session.user.id ||
-    order.runnerId === session.user.id ||
-    session.user.role === "RUNNER";
+  const hasAccess =
+    order.customerId === user.id ||
+    order.runnerId === user.id ||
+    user.role === "RUNNER";
 
-  if (!isOwner) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  if (!hasAccess) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   return NextResponse.json(order);
 }
@@ -41,18 +41,13 @@ export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const user = await getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await req.json();
-  const { action } = body;
+  const { action } = await req.json();
 
   const order = await db.order.findUnique({ where: { id: params.id } });
-  if (!order) {
-    return NextResponse.json({ error: "Order not found." }, { status: 404 });
-  }
+  if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 });
 
   const STATUS_FLOW: Record<string, string> = {
     accept: "ACCEPTED",
@@ -64,17 +59,15 @@ export async function PATCH(
   };
 
   const newStatus = STATUS_FLOW[action];
-  if (!newStatus) {
-    return NextResponse.json({ error: "Invalid action." }, { status: 400 });
-  }
+  if (!newStatus) return NextResponse.json({ error: "Invalid action." }, { status: 400 });
 
   const updateData: Record<string, unknown> = { status: newStatus };
 
   if (action === "accept") {
-    if (session.user.role !== "RUNNER") {
+    if (user.role !== "RUNNER") {
       return NextResponse.json({ error: "Only runners can accept orders." }, { status: 403 });
     }
-    updateData.runnerId = session.user.id;
+    updateData.runnerId = user.id;
   }
 
   const updated = await db.order.update({

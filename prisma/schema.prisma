@@ -10,9 +10,10 @@ datasource db {
 
 model User {
   id          String   @id @default(cuid())
+  supabaseId  String?  @unique
   name        String
   email       String   @unique
-  password    String
+  password    String?
   role        String   @default("CUSTOMER")
   studentId   String?
   dormitory   String?

@@ -1,16 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ShirtIcon, AlertCircleIcon } from "lucide-react";
+import { ShirtIcon, AlertCircleIcon, CheckCircleIcon } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { Suspense } from "react";
 
-export default function LoginPage() {
-  const router = useRouter();
+function LoginForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-
+  const verified = searchParams.get("verified") === "1";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -21,20 +20,23 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    const result = await signIn("credentials", {
+    const supabase = createClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
-      redirect: false,
     });
 
-    if (result?.error) {
-      setError("Invalid email or password.");
+    if (signInError) {
+      setError(
+        signInError.message === "Email not confirmed"
+          ? "Please verify your email first. Check your inbox."
+          : "Invalid email or password."
+      );
       setLoading(false);
       return;
     }
 
-    router.push(callbackUrl);
-    router.refresh();
+    window.location.href = "/dashboard";
   }
 
   return (
@@ -52,6 +54,12 @@ export default function LoginPage() {
         </div>
 
         <div className="card p-8">
+          {verified && (
+            <div className="mb-4 flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+              <CheckCircleIcon className="h-4 w-4 shrink-0" />
+              Email verified! You can now sign in.
+            </div>
+          )}
           {error && (
             <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
               <AlertCircleIcon className="h-4 w-4 shrink-0" />
@@ -61,9 +69,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="label">
-                Email address
-              </label>
+              <label htmlFor="email" className="label">Email address</label>
               <input
                 id="email"
                 type="email"
@@ -75,9 +81,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="label">
-                Password
-              </label>
+              <label htmlFor="password" className="label">Password</label>
               <input
                 id="password"
                 type="password"
@@ -102,5 +106,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

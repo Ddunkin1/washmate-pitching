@@ -1,18 +1,18 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/utils";
 import { PlusCircleIcon, ClipboardListIcon } from "lucide-react";
 
 export default async function OrdersPage() {
-  const session = await getServerSession(authOptions);
-  const isRunner = session?.user?.role === "RUNNER";
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const isRunner = user.role === "RUNNER";
 
   const orders = await db.order.findMany({
-    where: isRunner
-      ? { runnerId: session!.user.id }
-      : { customerId: session!.user.id },
+    where: isRunner ? { runnerId: user.id } : { customerId: user.id },
     include: {
       customer: { select: { name: true, dormitory: true } },
       runner: { select: { name: true } },
@@ -45,15 +45,7 @@ export default async function OrdersPage() {
           <p className="mt-4 text-base font-medium text-gray-500">
             {isRunner ? "You haven't accepted any jobs yet." : "You have no orders yet."}
           </p>
-          <p className="mt-1 text-sm text-gray-400">
-            {isRunner
-              ? "Browse available jobs and start earning."
-              : "Post a laundry request and a runner will pick it up."}
-          </p>
-          <Link
-            href={isRunner ? "/jobs" : "/orders/new"}
-            className="btn-primary mt-6"
-          >
+          <Link href={isRunner ? "/jobs" : "/orders/new"} className="btn-primary mt-6">
             {isRunner ? "Browse Jobs" : "Post an Order"}
           </Link>
         </div>
@@ -68,11 +60,9 @@ export default async function OrdersPage() {
                 className="flex items-start justify-between gap-4 px-6 py-5 hover:bg-gray-50 transition-colors"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`badge ${ORDER_STATUS_COLORS[order.status]}`}>
-                      {ORDER_STATUS_LABELS[order.status]}
-                    </span>
-                  </div>
+                  <span className={`badge ${ORDER_STATUS_COLORS[order.status]}`}>
+                    {ORDER_STATUS_LABELS[order.status]}
+                  </span>
                   <p className="mt-2 text-sm font-medium text-gray-900">
                     {order.pickupLocation} → {order.deliveryLocation}
                   </p>
@@ -84,9 +74,7 @@ export default async function OrdersPage() {
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="text-sm font-bold text-gray-900">{formatPrice(order.price)}</p>
-                  {order.weight && (
-                    <p className="text-xs text-gray-400">{order.weight} kg</p>
-                  )}
+                  {order.weight && <p className="text-xs text-gray-400">{order.weight} kg</p>}
                 </div>
               </Link>
             );
