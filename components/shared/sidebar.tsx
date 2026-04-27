@@ -25,7 +25,7 @@ const customerNav = [
 const runnerNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
   { href: "/jobs", label: "Available Jobs", icon: BriefcaseIcon },
-  { href: "/orders", label: "My Jobs", icon: ClipboardListIcon },
+  { href: "/orders", label: "Active Jobs", icon: ClipboardListIcon },
   { href: "/profile", label: "Profile", icon: UserIcon },
 ];
 
