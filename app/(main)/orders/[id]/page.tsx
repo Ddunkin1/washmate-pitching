@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeftIcon, PhoneIcon, MapPinIcon, WeightIcon } from "lucide-react";
 import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/utils";
 import { OrderActions } from "./order-actions";
+import { ReviewForm } from "./review-form";
 
 export default async function OrderDetailPage({
   params,
@@ -21,6 +22,12 @@ export default async function OrderDetailPage({
       runner: { select: { id: true, name: true, phone: true } },
     },
   });
+
+  const existingReview = order
+    ? await db.review.findFirst({
+        where: { orderId: params.id, reviewerId: user.id },
+      })
+    : null;
 
   if (!order) notFound();
 
@@ -176,6 +183,12 @@ export default async function OrderDetailPage({
           isAssignedRunner={isAssignedRunner}
         />
       </div>
+
+      {order.status === "DELIVERED" && (isCustomer || isAssignedRunner) && !existingReview && (
+        <div className="mt-6">
+          <ReviewForm orderId={order.id} />
+        </div>
+      )}
     </div>
   );
 }
