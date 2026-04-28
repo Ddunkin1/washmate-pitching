@@ -94,10 +94,10 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {[
-              { value: "500+", label: "Students Served" },
-              { value: "1,200+", label: "Orders Completed" },
-              { value: "₱150K+", label: "Earned by Runners" },
-              { value: "4.9★", label: "Average Rating" },
+              { value: "₱25/kg", label: "Standard Market Rate" },
+              { value: "6 Steps", label: "Live Order Tracking" },
+              { value: "Zero", label: "Monthly Subscription" },
+              { value: "2 Roles", label: "Customer & Runner" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-3xl font-bold text-blue-600">{stat.value}</p>
