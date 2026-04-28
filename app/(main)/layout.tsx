@@ -26,7 +26,7 @@ export default async function MainLayout({
         <div className="mx-auto max-w-5xl px-4 py-6 pt-20 pb-24 lg:px-6 lg:py-8 lg:pt-8 lg:pb-8">{children}</div>
       </main>
       <BottomNav userRole={user.role} />
-      <NewOrderFab userRole={user.role} />
+      {user.role === "CUSTOMER" && <NewOrderFab userRole={user.role} />}
     </div>
   );
 }
