@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { Sidebar } from "@/components/shared/sidebar";
 import { BottomNav } from "@/components/shared/bottom-nav";
+import { NewOrderFab } from "@/components/shared/new-order-fab";
 
 export default async function MainLayout({
   children,
@@ -25,6 +26,7 @@ export default async function MainLayout({
         <div className="mx-auto max-w-5xl px-4 py-6 pt-20 pb-24 lg:px-6 lg:py-8 lg:pt-8 lg:pb-8">{children}</div>
       </main>
       <BottomNav userRole={user.role} />
+      {user.role === "CUSTOMER" && <NewOrderFab />}
     </div>
   );
 }
