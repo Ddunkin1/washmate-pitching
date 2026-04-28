@@ -10,7 +10,14 @@ export default async function JobsPage() {
   if (!user || user.role !== "RUNNER") redirect("/dashboard");
 
   const jobs = await db.order.findMany({
-    where: { status: "PENDING", runnerId: null },
+    where: {
+      status: "PENDING",
+      runnerId: null,
+      OR: [
+        { runnerGenderPreference: "ANY" },
+        { runnerGenderPreference: user.gender ?? "ANY" },
+      ],
+    },
     include: { customer: { select: { name: true, dormitory: true } } },
     orderBy: { createdAt: "desc" },
   });
@@ -70,6 +77,15 @@ export default async function JobsPage() {
                         </span>
                       ))}
                     </div>
+                    {job.runnerGenderPreference !== "ANY" && (
+                      <span className={`mt-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        job.runnerGenderPreference === "FEMALE"
+                          ? "bg-pink-100 text-pink-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {job.runnerGenderPreference === "FEMALE" ? "Female runner preferred" : "Male runner preferred"}
+                      </span>
+                    )}
                     {job.specialInstructions && (
                       <p className="mt-2 text-xs text-gray-400 italic">Note: {job.specialInstructions}</p>
                     )}

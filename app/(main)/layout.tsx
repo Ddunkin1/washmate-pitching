@@ -11,9 +11,8 @@ export default async function MainLayout({
 }) {
   const user = await getCurrentUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
+  if (!user.gender) redirect("/setup-gender");
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">

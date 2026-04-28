@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { items, specialInstructions, pickupLocation, deliveryLocation, scheduledPickup, weight } = body;
+  const { items, specialInstructions, pickupLocation, deliveryLocation, scheduledPickup, weight, runnerGenderPreference } = body;
 
   if (!items || !pickupLocation || !deliveryLocation) {
     return NextResponse.json(
@@ -56,6 +56,7 @@ export async function POST(req: Request) {
       scheduledPickup: scheduledPickup ? new Date(scheduledPickup) : null,
       weight: kilos,
       price,
+      runnerGenderPreference: runnerGenderPreference || "ANY",
     },
   });
 

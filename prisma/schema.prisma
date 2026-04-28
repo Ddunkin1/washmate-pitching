@@ -18,6 +18,7 @@ model User {
   studentId   String?
   dormitory   String?
   phone       String?
+  gender      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -38,8 +39,9 @@ model Order {
   deliveryLocation    String
   scheduledPickup     DateTime?
   price               Float     @default(0)
-  weight              Float?
-  createdAt           DateTime  @default(now())
+  weight                  Float?
+  runnerGenderPreference  String    @default("ANY")
+  createdAt               DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
   customer User    @relation("CustomerOrders", fields: [customerId], references: [id])

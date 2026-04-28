@@ -30,6 +30,9 @@ export default function NewOrderPage() {
     weight: "1",
     specialInstructions: "",
   });
+  const [genderPref, setGenderPref] = useState("ANY");
+  const INTIMATE_ITEMS = ["Underwear"];
+  const hasIntimateItems = selectedItems.some((i) => INTIMATE_ITEMS.includes(i));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -59,7 +62,7 @@ export default function NewOrderPage() {
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, items: selectedItems }),
+      body: JSON.stringify({ ...form, items: selectedItems, runnerGenderPreference: genderPref }),
     });
 
     const data = await res.json();
@@ -200,6 +203,39 @@ export default function NewOrderPage() {
                 }
               />
             </div>
+          </div>
+        </div>
+
+        {/* Runner Gender Preference */}
+        <div className={`card p-6 ${hasIntimateItems ? "border-pink-200 bg-pink-50" : ""}`}>
+          <h2 className="mb-1 font-semibold text-gray-900">Preferred Runner Gender</h2>
+          {hasIntimateItems && (
+            <p className="mb-3 text-xs text-pink-600">You have intimate items. Consider choosing a preferred runner gender for your comfort.</p>
+          )}
+          {!hasIntimateItems && (
+            <p className="mb-3 text-xs text-gray-400">Optional. Choose if you prefer a male or female runner.</p>
+          )}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { value: "ANY", label: "Any" },
+              { value: "MALE", label: "Male" },
+              { value: "FEMALE", label: "Female" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setGenderPref(opt.value)}
+                className={`rounded-lg border-2 py-2.5 text-sm font-semibold transition-all ${
+                  genderPref === opt.value
+                    ? opt.value === "FEMALE"
+                      ? "border-pink-500 bg-pink-50 text-pink-700"
+                      : "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         </div>
 

@@ -9,6 +9,7 @@ import {
   UserIcon,
   LogOutIcon,
   ShirtIcon,
+  ShieldIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -26,6 +27,8 @@ const runnerNav = [
   { href: "/profile", label: "Profile", icon: UserIcon },
 ];
 
+const adminNav = [{ href: "/admin", label: "Admin", icon: ShieldIcon }];
+
 interface SidebarProps {
   userName: string;
   userEmail: string;
@@ -36,6 +39,7 @@ export function Sidebar({ userName, userEmail, userRole }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const isRunner = userRole === "RUNNER";
+  const isAdmin = userRole === "ADMIN";
   const nav = isRunner ? runnerNav : customerNav;
 
   async function handleSignOut() {
@@ -61,13 +65,12 @@ export function Sidebar({ userName, userEmail, userRole }: SidebarProps) {
 
       <div className="flex-1 overflow-y-auto px-3 py-4">
         <nav className="space-y-1">
-          {nav.map((item) => {
+          {[...nav, ...(isAdmin ? adminNav : [])].map((item) => {
             const active = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   active

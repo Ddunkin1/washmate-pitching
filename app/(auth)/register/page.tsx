@@ -11,6 +11,7 @@ function RegisterForm() {
   const defaultRole = searchParams.get("role") || "CUSTOMER";
 
   const [role, setRole] = useState(defaultRole);
+  const [gender, setGender] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
@@ -30,6 +31,10 @@ function RegisterForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!gender) {
+      setError("Please select your gender.");
+      return;
+    }
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -49,6 +54,7 @@ function RegisterForm() {
         data: {
           name: form.name,
           role: role,
+          gender: gender,
           studentId: form.studentId,
           dormitory: form.dormitory,
           phone: form.phone,
@@ -130,6 +136,34 @@ function RegisterForm() {
             >
               I want to earn (Runner)
             </button>
+          </div>
+
+          <div className="mb-6">
+            <label className="label">Your Gender <span className="text-red-500">*</span></label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setGender("MALE")}
+                className={`rounded-xl border-2 py-3 text-sm font-semibold transition-all ${
+                  gender === "MALE"
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-200 text-gray-500 hover:border-gray-300"
+                }`}
+              >
+                Male
+              </button>
+              <button
+                type="button"
+                onClick={() => setGender("FEMALE")}
+                className={`rounded-xl border-2 py-3 text-sm font-semibold transition-all ${
+                  gender === "FEMALE"
+                    ? "border-pink-500 bg-pink-50 text-pink-700"
+                    : "border-gray-200 text-gray-500 hover:border-gray-300"
+                }`}
+              >
+                Female
+              </button>
+            </div>
           </div>
 
           {error && (

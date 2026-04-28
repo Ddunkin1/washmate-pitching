@@ -41,6 +41,7 @@ export async function GET(request: Request) {
             email: data.user.email!,
             name: meta.name || "Student",
             role: meta.role === "RUNNER" ? "RUNNER" : "CUSTOMER",
+            gender: meta.gender || null,
             studentId: meta.studentId || null,
             dormitory: meta.dormitory || null,
             phone: meta.phone || null,
