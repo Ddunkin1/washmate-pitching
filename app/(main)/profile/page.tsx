@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
 import { UserIcon, StarIcon } from "lucide-react";
+import { SignOutButton } from "@/components/shared/sign-out-button";
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -117,6 +118,10 @@ export default async function ProfilePage() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="mt-6 lg:hidden">
+        <SignOutButton />
       </div>
     </div>
   );
