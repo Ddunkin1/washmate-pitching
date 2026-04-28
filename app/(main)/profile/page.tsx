@@ -10,33 +10,29 @@ export default async function ProfilePage() {
 
   const isRunner = user.role === "RUNNER";
 
-  const userWithCount = await db.user.findUnique({
-    where: { id: user.id },
-    include: {
-      _count: { select: { ordersAsCustomer: true, ordersAsRunner: true } },
-    },
-  });
+  const [userWithCount, earnedAgg, spentAgg, reviews] = await Promise.all([
+    db.user.findUnique({
+      where: { id: user.id },
+      include: {
+        _count: { select: { ordersAsCustomer: true, ordersAsRunner: true } },
+      },
+    }),
+    isRunner
+      ? db.order.aggregate({ where: { runnerId: user.id, status: "DELIVERED" }, _sum: { price: true } })
+      : Promise.resolve(null),
+    !isRunner
+      ? db.order.aggregate({ where: { customerId: user.id, status: "DELIVERED" }, _sum: { price: true } })
+      : Promise.resolve(null),
+    db.review.findMany({
+      where: { revieweeId: user.id },
+      include: { reviewer: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+  ]);
 
-  const totalEarned = isRunner
-    ? (await db.order.aggregate({
-        where: { runnerId: user.id, status: "DELIVERED" },
-        _sum: { price: true },
-      }))._sum.price ?? 0
-    : 0;
-
-  const totalSpent = !isRunner
-    ? (await db.order.aggregate({
-        where: { customerId: user.id, status: "DELIVERED" },
-        _sum: { price: true },
-      }))._sum.price ?? 0
-    : 0;
-
-  const reviews = await db.review.findMany({
-    where: { revieweeId: user.id },
-    include: { reviewer: { select: { name: true } } },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
+  const totalEarned = earnedAgg?._sum.price ?? 0;
+  const totalSpent = spentAgg?._sum.price ?? 0;
 
   const avgRating =
     reviews.length > 0

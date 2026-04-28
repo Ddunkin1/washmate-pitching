@@ -11,19 +11,20 @@ export default async function DashboardPage() {
 
   const isRunner = user.role === "RUNNER";
 
-  const orders = await db.order.findMany({
-    where: isRunner ? { runnerId: user.id } : { customerId: user.id },
-    include: {
-      customer: { select: { name: true, dormitory: true } },
-      runner: { select: { name: true } },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
-
-  const availableJobs = isRunner
-    ? await db.order.count({ where: { status: "PENDING", runnerId: null } })
-    : 0;
+  const [orders, availableJobs] = await Promise.all([
+    db.order.findMany({
+      where: isRunner ? { runnerId: user.id } : { customerId: user.id },
+      include: {
+        customer: { select: { name: true, dormitory: true } },
+        runner: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+    isRunner
+      ? db.order.count({ where: { status: "PENDING", runnerId: null } })
+      : Promise.resolve(0),
+  ]);
 
   const totalEarned = isRunner
     ? orders.reduce((sum, o) => (o.status === "DELIVERED" ? sum + o.price : sum), 0)
