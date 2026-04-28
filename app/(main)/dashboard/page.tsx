@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/utils";
-import { PlusCircleIcon, BriefcaseIcon, ClipboardListIcon, WalletIcon, TrendingUpIcon, CalendarIcon } from "lucide-react";
+import { BriefcaseIcon, ClipboardListIcon, WalletIcon, TrendingUpIcon, CalendarIcon } from "lucide-react";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -51,29 +51,15 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Welcome back, {user.name.split(" ")[0]}!
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            {isRunner
-              ? "Here's what's happening with your runner jobs."
-              : "Here's the status of your laundry orders."}
-          </p>
-        </div>
-        {!isRunner && (
-          <Link href="/orders/new" className="btn-primary">
-            <PlusCircleIcon className="h-4 w-4" />
-            New Order
-          </Link>
-        )}
-        {isRunner && (
-          <Link href="/jobs" className="btn-primary">
-            <BriefcaseIcon className="h-4 w-4" />
-            Browse Jobs
-          </Link>
-        )}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">
+          Welcome back, {user.name.split(" ")[0]}!
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
+          {isRunner
+            ? "Here's what's happening with your runner jobs."
+            : "Here's the status of your laundry orders."}
+        </p>
       </div>
 
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
