@@ -6,6 +6,7 @@ import { ArrowLeftIcon, PhoneIcon, MapPinIcon, WeightIcon } from "lucide-react";
 import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/utils";
 import { OrderActions } from "./order-actions";
 import { ReviewForm } from "./review-form";
+import { OrderStatusRealtime } from "./order-status-realtime";
 
 export default async function OrderDetailPage({
   params,
@@ -37,9 +38,6 @@ export default async function OrderDetailPage({
 
   const items = JSON.parse(order.items) as string[];
 
-  const STATUS_STEPS = ["PENDING", "ACCEPTED", "PICKED_UP", "WASHING", "READY", "DELIVERED"];
-  const currentStep = STATUS_STEPS.indexOf(order.status);
-
   return (
     <div>
       <div className="mb-6 flex items-center gap-3">
@@ -53,33 +51,10 @@ export default async function OrderDetailPage({
         <span className={`ml-auto badge ${ORDER_STATUS_COLORS[order.status]} text-sm px-3 py-1`}>
           {ORDER_STATUS_LABELS[order.status]}
         </span>
+
       </div>
 
-      {order.status !== "CANCELLED" && (
-        <div className="card mb-6 p-6">
-          <h2 className="mb-4 text-sm font-semibold text-gray-700">Order Progress</h2>
-          <div className="flex items-center gap-1">
-            {STATUS_STEPS.map((step, index) => (
-              <div key={step} className="flex flex-1 items-center gap-1">
-                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${index <= currentStep ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-400"}`}>
-                  {index < currentStep ? "✓" : index + 1}
-                </div>
-                {index < STATUS_STEPS.length - 1 && (
-                  <div className={`h-1 flex-1 rounded-full ${index < currentStep ? "bg-blue-600" : "bg-gray-100"}`} />
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="mt-2 flex justify-between text-xs text-gray-400">
-            <span>Posted</span>
-            <span>Accepted</span>
-            <span>Picked Up</span>
-            <span>Washing</span>
-            <span>Ready</span>
-            <span>Done</span>
-          </div>
-        </div>
-      )}
+      <OrderStatusRealtime orderId={order.id} initialStatus={order.status} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="card p-6">
