@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { Sidebar } from "@/components/shared/sidebar";
+import { BottomNav } from "@/components/shared/bottom-nav";
 
 export default async function MainLayout({
   children,
@@ -21,8 +22,9 @@ export default async function MainLayout({
         userRole={user.role}
       />
       <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-5xl px-4 py-6 pt-20 lg:px-6 lg:py-8 lg:pt-8">{children}</div>
+        <div className="mx-auto max-w-5xl px-4 py-6 pt-20 pb-24 lg:px-6 lg:py-8 lg:pt-8 lg:pb-8">{children}</div>
       </main>
+      <BottomNav userRole={user.role} />
     </div>
   );
 }

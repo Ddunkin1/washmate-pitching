@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -10,8 +9,6 @@ import {
   UserIcon,
   LogOutIcon,
   ShirtIcon,
-  MenuIcon,
-  XIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -38,7 +35,6 @@ interface SidebarProps {
 export function Sidebar({ userName, userEmail, userRole }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const isRunner = userRole === "RUNNER";
   const nav = isRunner ? runnerNav : customerNav;
 
@@ -71,7 +67,7 @@ export function Sidebar({ userName, userEmail, userRole }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setOpen(false)}
+
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   active
@@ -118,37 +114,12 @@ export function Sidebar({ userName, userEmail, userRole }: SidebarProps) {
           </div>
           <span className="font-bold text-gray-900">WashMate</span>
         </div>
-        <button
-          onClick={() => setOpen(true)}
-          className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-        >
-          <MenuIcon className="h-5 w-5" />
-        </button>
-      </div>
-
-      {/* Mobile drawer backdrop */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
-
-      {/* Mobile drawer */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-full w-72 flex-col border-r border-gray-200 bg-white transition-transform duration-200 lg:hidden",
-          open ? "translate-x-0" : "-translate-x-full"
+        {isRunner && (
+          <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+            Runner
+          </span>
         )}
-      >
-        <button
-          onClick={() => setOpen(false)}
-          className="absolute right-3 top-3 rounded-lg p-2 text-gray-400 hover:bg-gray-100"
-        >
-          <XIcon className="h-5 w-5" />
-        </button>
-        <NavContent />
-      </aside>
+      </div>
 
       {/* Desktop sidebar */}
       <aside className="hidden h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white lg:flex">
