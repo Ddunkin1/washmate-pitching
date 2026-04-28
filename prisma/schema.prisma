@@ -26,6 +26,8 @@ model User {
   ordersAsRunner   Order[]  @relation("RunnerOrders")
   reviewsGiven     Review[] @relation("ReviewsGiven")
   reviewsReceived  Review[] @relation("ReviewsReceived")
+  flagsGiven       Flag[]   @relation("FlagsGiven")
+  flagsReceived    Flag[]   @relation("FlagsReceived")
 }
 
 model Order {
@@ -47,6 +49,21 @@ model Order {
   customer User    @relation("CustomerOrders", fields: [customerId], references: [id])
   runner   User?   @relation("RunnerOrders", fields: [runnerId], references: [id])
   review   Review?
+  flags    Flag[]
+}
+
+model Flag {
+  id         String   @id @default(cuid())
+  orderId    String
+  reporterId String
+  reportedId String
+  reason     String
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+
+  order    Order @relation(fields: [orderId], references: [id])
+  reporter User  @relation("FlagsGiven", fields: [reporterId], references: [id])
+  reported User  @relation("FlagsReceived", fields: [reportedId], references: [id])
 }
 
 model Review {

@@ -40,7 +40,7 @@ export function Sidebar({ userName, userEmail, userRole }: SidebarProps) {
   const router = useRouter();
   const isRunner = userRole === "RUNNER";
   const isAdmin = userRole === "ADMIN";
-  const nav = isRunner ? runnerNav : customerNav;
+  const nav = isAdmin ? adminNav : isRunner ? runnerNav : customerNav;
 
   async function handleSignOut() {
     const supabase = createClient();

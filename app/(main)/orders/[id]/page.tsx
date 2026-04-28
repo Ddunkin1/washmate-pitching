@@ -7,6 +7,7 @@ import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } fro
 import { OrderActions } from "./order-actions";
 import { ReviewForm } from "./review-form";
 import { OrderStatusRealtime } from "./order-status-realtime";
+import { FlagRunnerButton } from "./flag-runner-button";
 
 export default async function OrderDetailPage({
   params,
@@ -24,11 +25,10 @@ export default async function OrderDetailPage({
     },
   });
 
-  const existingReview = order
-    ? await db.review.findFirst({
-        where: { orderId: params.id, reviewerId: user.id },
-      })
-    : null;
+  const [existingReview, existingFlag] = await Promise.all([
+    order ? db.review.findFirst({ where: { orderId: params.id, reviewerId: user.id } }) : null,
+    order ? db.flag.findFirst({ where: { orderId: params.id, reporterId: user.id } }) : null,
+  ]);
 
   if (!order) notFound();
 
@@ -163,6 +163,17 @@ export default async function OrderDetailPage({
         <div className="mt-6">
           <ReviewForm orderId={order.id} />
         </div>
+      )}
+
+      {isCustomer && order.runnerId && !existingFlag && (
+        <div className="mt-4 flex justify-end">
+          <FlagRunnerButton orderId={order.id} />
+        </div>
+      )}
+      {isCustomer && order.runnerId && existingFlag && (
+        <p className="mt-4 text-right text-xs text-orange-600 font-medium">
+          Flag submitted ({existingFlag.status.toLowerCase()}). Admin is reviewing.
+        </p>
       )}
     </div>
   );

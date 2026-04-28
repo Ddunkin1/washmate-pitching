@@ -9,7 +9,9 @@ import {
   BriefcaseIcon,
   TrendingUpIcon,
   ShirtIcon,
+  FlagIcon,
 } from "lucide-react";
+import { FlagActions } from "./flag-actions";
 
 export default async function AdminPage() {
   const user = await getCurrentUser();
@@ -24,6 +26,7 @@ export default async function AdminPage() {
     ordersByStatus,
     recentOrders,
     topRunners,
+    pendingFlags,
   ] = await Promise.all([
     db.order.count(),
     db.order.aggregate({ where: { status: "DELIVERED" }, _sum: { price: true } }),
@@ -45,6 +48,15 @@ export default async function AdminPage() {
       _sum: { price: true },
       orderBy: { _sum: { price: "desc" } },
       take: 5,
+    }),
+    db.flag.findMany({
+      where: { status: "PENDING" },
+      orderBy: { createdAt: "desc" },
+      include: {
+        reporter: { select: { name: true } },
+        reported: { select: { name: true, gender: true } },
+        order: { select: { id: true, pickupLocation: true, deliveryLocation: true } },
+      },
     }),
   ]);
 
@@ -190,6 +202,42 @@ export default async function AdminPage() {
             )}
           </div>
         </div>
+
+        {/* Flags */}
+        {pendingFlags.length > 0 && (
+          <div className="card mb-8">
+            <div className="flex items-center gap-2 border-b border-gray-100 px-6 py-4">
+              <FlagIcon className="h-4 w-4 text-orange-500" />
+              <h2 className="font-semibold text-gray-900">Pending Reports</h2>
+              <span className="ml-auto rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-600">
+                {pendingFlags.length}
+              </span>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {pendingFlags.map((flag) => (
+                <div key={flag.id} className="flex items-start justify-between gap-4 px-6 py-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900">
+                      {flag.reporter.name} reported {flag.reported.name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-gray-500">{flag.reason}</p>
+                    <p className="mt-0.5 text-xs text-gray-400">
+                      Order: {flag.order.pickupLocation} → {flag.order.deliveryLocation}
+                    </p>
+                    {flag.reported.gender && (
+                      <span className={`mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                        flag.reported.gender === "FEMALE" ? "bg-pink-100 text-pink-700" : "bg-blue-100 text-blue-700"
+                      }`}>
+                        Runner is {flag.reported.gender.toLowerCase()}
+                      </span>
+                    )}
+                  </div>
+                  <FlagActions flagId={flag.id} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Recent orders */}
         <div className="card">

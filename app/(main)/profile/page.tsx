@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
 import { UserIcon, StarIcon } from "lucide-react";
 import { SignOutButton } from "@/components/shared/sign-out-button";
+import { GenderEdit } from "@/components/shared/gender-edit";
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -59,6 +60,9 @@ export default async function ProfilePage() {
               {user.studentId && <p>ID: {user.studentId}</p>}
               {user.dormitory && <p>{user.dormitory}</p>}
               {user.phone && <p>{user.phone}</p>}
+            </div>
+            <div className="mt-3 flex justify-center">
+              <GenderEdit currentGender={user.gender ?? null} />
             </div>
             {avgRating && (
               <div className="mt-4 flex items-center justify-center gap-1">
