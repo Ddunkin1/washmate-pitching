@@ -22,7 +22,8 @@ const LAUNDRY_ITEMS = [
 
 export default function NewOrderPage() {
   const router = useRouter();
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [itemQty, setItemQty] = useState<Record<string, number>>({});
+  const [popup, setPopup] = useState<{ item: string; input: string; error: string } | null>(null);
   const [form, setForm] = useState({
     pickupLocation: "",
     deliveryLocation: "",
@@ -32,14 +33,36 @@ export default function NewOrderPage() {
   });
   const [genderPref, setGenderPref] = useState("ANY");
   const INTIMATE_ITEMS = ["Underwear"];
+  const selectedItems = Object.keys(itemQty).filter((k) => itemQty[k] > 0);
   const hasIntimateItems = selectedItems.some((i) => INTIMATE_ITEMS.includes(i));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function toggleItem(item: string) {
-    setSelectedItems((prev) =>
-      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
-    );
+  function openPopup(item: string) {
+    setPopup({ item, input: itemQty[item] ? String(itemQty[item]) : "", error: "" });
+  }
+
+  function closePopup() {
+    setPopup(null);
+  }
+
+  function confirmPopup() {
+    if (!popup) return;
+    const qty = parseInt(popup.input);
+    if (!popup.input || isNaN(qty) || qty < 1) {
+      setPopup((p) => p ? { ...p, error: "Please enter a valid number (at least 1)." } : p);
+      return;
+    }
+    setItemQty((prev) => ({ ...prev, [popup.item]: qty }));
+    setPopup(null);
+  }
+
+  function removeItem(item: string) {
+    setItemQty((prev) => {
+      const next = { ...prev };
+      delete next[item];
+      return next;
+    });
   }
 
   function handleChange(
@@ -62,10 +85,14 @@ export default function NewOrderPage() {
     setLoading(true);
     setError("");
 
+    const items = Object.entries(itemQty)
+      .filter(([, qty]) => qty > 0)
+      .map(([name, qty]) => ({ name, qty }));
+
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, items: selectedItems, runnerGenderPreference: genderPref }),
+      body: JSON.stringify({ ...form, items, runnerGenderPreference: genderPref }),
     });
 
     const data = await res.json();
@@ -81,6 +108,60 @@ export default function NewOrderPage() {
 
   return (
     <div>
+      {/* Quantity Popup */}
+      {popup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={closePopup}>
+          <div
+            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="mb-1 text-lg font-bold text-gray-900">How many?</h3>
+            <p className="mb-4 text-sm text-gray-500">
+              Enter the number of <span className="font-semibold text-blue-600">{popup.item}</span> to include.
+            </p>
+            <input
+              type="number"
+              min={1}
+              max={99}
+              autoFocus
+              className="input mb-1 text-center text-2xl font-bold"
+              placeholder="e.g. 5"
+              value={popup.input}
+              onChange={(e) => setPopup((p) => p ? { ...p, input: e.target.value, error: "" } : p)}
+              onKeyDown={(e) => e.key === "Enter" && confirmPopup()}
+            />
+            {popup.error && (
+              <p className="mb-3 text-xs text-red-500">{popup.error}</p>
+            )}
+            <div className="mt-4 flex gap-2">
+              {itemQty[popup.item] && (
+                <button
+                  type="button"
+                  onClick={() => { removeItem(popup.item); closePopup(); }}
+                  className="flex-1 rounded-xl border border-red-200 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  Remove
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={closePopup}
+                className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmPopup}
+                className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 flex items-center gap-3">
         <Link href="/dashboard" className="text-gray-400 hover:text-gray-600">
           <ArrowLeftIcon className="h-5 w-5" />
@@ -106,19 +187,31 @@ export default function NewOrderPage() {
           </h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {LAUNDRY_ITEMS.map((item) => {
-              const selected = selectedItems.includes(item);
+              const qty = itemQty[item] ?? 0;
+              const selected = qty > 0;
               return (
                 <button
                   key={item}
                   type="button"
-                  onClick={() => toggleItem(item)}
-                  className={`rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-all ${
+                  onClick={() => openPopup(item)}
+                  className={`relative rounded-xl border px-3 py-3 text-left transition-all ${
                     selected
-                      ? "border-blue-500 bg-blue-50 text-blue-700"
-                      : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40"
                   }`}
                 >
-                  {selected ? "✓ " : ""}{item}
+                  {selected && (
+                    <span className="absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[10px] font-bold text-white shadow">
+                      {qty}
+                    </span>
+                  )}
+                  <span className={`block text-sm font-medium leading-tight ${selected ? "text-blue-700" : "text-gray-700"}`}>
+                    {selected && <span className="mr-1 text-blue-400">✓</span>}
+                    {item}
+                  </span>
+                  <span className="mt-0.5 block text-[10px] text-gray-400">
+                    {selected ? "tap to edit" : "tap to add"}
+                  </span>
                 </button>
               );
             })}
@@ -265,7 +358,7 @@ export default function NewOrderPage() {
               </div>
               {hasBedsheets && (
                 <p className="mt-2 rounded-lg bg-orange-50 border border-orange-100 px-3 py-2 text-xs text-orange-600">
-                  Bedsheets require extra handling effort — a ₱50 surcharge applies.
+                  Bedsheets require extra handling effort — ₱10 surcharge added.
                 </p>
               )}
             </div>

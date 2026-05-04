@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeftIcon, PhoneIcon, MapPinIcon, WeightIcon } from "lucide-react";
-import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/utils";
+import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, parseItems } from "@/lib/utils";
 import { OrderActions } from "./order-actions";
 import { ReviewForm } from "./review-form";
 import { OrderStatusRealtime } from "./order-status-realtime";
@@ -36,7 +36,7 @@ export default async function OrderDetailPage({
   const isCustomer = order.customerId === user.id;
   const isAssignedRunner = order.runnerId === user.id;
 
-  const items = JSON.parse(order.items) as string[];
+  const items = parseItems(order.items);
 
   return (
     <div>
@@ -61,8 +61,9 @@ export default async function OrderDetailPage({
           <h2 className="mb-4 font-semibold text-gray-900">Laundry Items</h2>
           <div className="flex flex-wrap gap-2">
             {items.map((item) => (
-              <span key={item} className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm text-blue-700">
-                {item}
+              <span key={item.name} className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm text-blue-700">
+                <span className="font-bold">{item.qty}×</span>
+                {item.name}
               </span>
             ))}
           </div>

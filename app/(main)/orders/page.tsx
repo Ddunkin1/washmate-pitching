@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { Suspense } from "react";
-import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/utils";
+import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, parseItems } from "@/lib/utils";
 import { PlusCircleIcon, ClipboardListIcon } from "lucide-react";
 import { OrderTabs } from "@/components/shared/order-tabs";
 
@@ -87,7 +87,8 @@ export default async function OrdersPage({
       ) : (
         <div className="card divide-y divide-gray-100">
           {orders.map((order) => {
-            const items = JSON.parse(order.items) as string[];
+            const items = parseItems(order.items);
+            const totalPieces = items.reduce((s, i) => s + i.qty, 0);
             return (
               <Link
                 key={order.id}
@@ -102,8 +103,9 @@ export default async function OrdersPage({
                     {order.pickupLocation} → {order.deliveryLocation}
                   </p>
                   <p className="mt-1 text-xs text-gray-400">
-                    {items.slice(0, 3).join(", ")}
+                    {items.slice(0, 3).map((i) => `${i.qty}× ${i.name}`).join(", ")}
                     {items.length > 3 ? ` +${items.length - 3} more` : ""}
+                    {" · "}{totalPieces} pcs total
                   </p>
                   <p className="mt-1 text-xs text-gray-400">{formatDate(order.createdAt)}</p>
                 </div>

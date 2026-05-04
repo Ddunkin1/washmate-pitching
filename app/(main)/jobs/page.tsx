@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
-import { formatPrice, formatDate } from "@/lib/utils";
+import { formatPrice, formatDate, parseItems } from "@/lib/utils";
 import { BriefcaseIcon, MapPinIcon, WeightIcon } from "lucide-react";
 import { AcceptJobButton } from "./accept-job-button";
 
@@ -40,7 +40,7 @@ export default async function JobsPage() {
       ) : (
         <div className="space-y-4">
           {jobs.map((job) => {
-            const items = JSON.parse(job.items) as string[];
+            const items = parseItems(job.items);
             return (
               <div key={job.id} className="card p-6">
                 <div className="flex items-start justify-between gap-4">
@@ -72,8 +72,9 @@ export default async function JobsPage() {
                     </div>
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {items.map((item) => (
-                        <span key={item} className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs text-gray-600">
-                          {item}
+                        <span key={item.name} className="flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs text-gray-600">
+                          <span className="font-bold text-gray-800">{item.qty}×</span>
+                          {item.name}
                         </span>
                       ))}
                     </div>

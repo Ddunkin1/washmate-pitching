@@ -131,7 +131,7 @@ export default async function DashboardPage() {
                 <div>
                   <p className="text-sm text-gray-500">Total Spent</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatPrice(orders.reduce((s, o) => s + o.price, 0))}
+                    {formatPrice(orders.filter((o) => o.status === "DELIVERED").reduce((s, o) => s + o.price, 0))}
                   </p>
                 </div>
               </div>

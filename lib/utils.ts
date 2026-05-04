@@ -32,6 +32,20 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
   CANCELLED: "Cancelled",
 };
 
+export type LaundryItem = { name: string; qty: number };
+
+export function parseItems(raw: string): LaundryItem[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((item) =>
+      typeof item === "string" ? { name: item, qty: 1 } : item
+    );
+  } catch {
+    return [];
+  }
+}
+
 export const ORDER_STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
   ACCEPTED: "bg-blue-100 text-blue-800",
