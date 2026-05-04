@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
-import { formatPrice, formatDate, parseItems } from "@/lib/utils";
+import { formatPrice, formatDate, parseItems, runnerEarnings, PLATFORM_FEE_RATE } from "@/lib/utils";
 import { BriefcaseIcon, MapPinIcon, WeightIcon } from "lucide-react";
 import { AcceptJobButton } from "./accept-job-button";
 
@@ -93,7 +93,10 @@ export default async function JobsPage() {
                     <p className="mt-3 text-xs text-gray-400">Posted {formatDate(job.createdAt)}</p>
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-3">
-                    <p className="text-2xl font-bold text-green-600">{formatPrice(job.price)}</p>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-green-600">{formatPrice(runnerEarnings(job.price))}</p>
+                      <p className="text-xs text-gray-400">{(1 - PLATFORM_FEE_RATE) * 100}% of ₱{job.price.toFixed(0)}</p>
+                    </div>
                     <AcceptJobButton orderId={job.id} />
                   </div>
                 </div>

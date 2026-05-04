@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import Link from "next/link";
-import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/utils";
+import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, runnerEarnings } from "@/lib/utils";
 import { BriefcaseIcon, ClipboardListIcon, WalletIcon, TrendingUpIcon, CalendarIcon } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -41,9 +41,9 @@ export default async function DashboardPage() {
       : Promise.resolve(null),
   ]);
 
-  const totalEarned = totalEarnedAgg?._sum.price ?? 0;
-  const weeklyEarned = weeklyEarnedAgg?._sum.price ?? 0;
-  const monthlyEarned = monthlyEarnedAgg?._sum.price ?? 0;
+  const totalEarned = runnerEarnings(totalEarnedAgg?._sum.price ?? 0);
+  const weeklyEarned = runnerEarnings(weeklyEarnedAgg?._sum.price ?? 0);
+  const monthlyEarned = runnerEarnings(monthlyEarnedAgg?._sum.price ?? 0);
 
   const activeCount = orders.filter(
     (o) => !["DELIVERED", "CANCELLED"].includes(o.status)

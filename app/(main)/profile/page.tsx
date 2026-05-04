@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, runnerEarnings } from "@/lib/utils";
 import { UserIcon, StarIcon } from "lucide-react";
 import { SignOutButton } from "@/components/shared/sign-out-button";
 import { GenderEdit } from "@/components/shared/gender-edit";
@@ -33,7 +33,7 @@ export default async function ProfilePage() {
     }),
   ]);
 
-  const totalEarned = earnedAgg?._sum.price ?? 0;
+  const totalEarned = runnerEarnings(earnedAgg?._sum.price ?? 0);
   const totalSpent = spentAgg?._sum.price ?? 0;
 
   const avgRating =

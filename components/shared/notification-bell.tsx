@@ -23,7 +23,7 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export function NotificationBell() {
+export function NotificationBell({ align = "right" }: { align?: "left" | "right" }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -77,7 +77,7 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-11 z-50 w-80 rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60">
+        <div className={`absolute top-11 z-50 w-80 rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60 ${align === "right" ? "right-0" : "left-0"}`}>
           <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
             <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
             <button

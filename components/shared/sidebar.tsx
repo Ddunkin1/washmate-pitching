@@ -63,7 +63,7 @@ export function Sidebar({ userName, userEmail, userRole }: SidebarProps) {
           </span>
         )}
         <div className="ml-auto">
-          <NotificationBell />
+          <NotificationBell align="left" />
         </div>
       </div>
 

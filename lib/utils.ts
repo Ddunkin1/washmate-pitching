@@ -5,6 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const PLATFORM_FEE_RATE = 0.10;
+export const runnerEarnings = (price: number) => price * (1 - PLATFORM_FEE_RATE);
+export const platformFee = (price: number) => price * PLATFORM_FEE_RATE;
+
 export function formatPrice(amount: number) {
   return new Intl.NumberFormat("en-PH", {
     style: "currency",

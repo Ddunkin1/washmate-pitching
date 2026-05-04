@@ -1,14 +1,13 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
-import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/utils";
+import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, platformFee, runnerEarnings } from "@/lib/utils";
 import {
   ClipboardListIcon,
   WalletIcon,
   UsersIcon,
   BriefcaseIcon,
   TrendingUpIcon,
-  ShirtIcon,
   FlagIcon,
   ActivityIcon,
   TrophyIcon,
@@ -85,33 +84,12 @@ export default async function AdminPage() {
     "bg-orange-300 text-white",
   ];
 
+  const grossRevenue = totalRevenue._sum.price ?? 0;
+  const platformRevenue = platformFee(grossRevenue);
+  const runnerPayouts = runnerEarnings(grossRevenue);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-
-      {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-6 py-6 lg:px-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
-              <ShirtIcon className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-xs text-gray-400">WashMate · Business Overview</p>
-            </div>
-          </div>
-          {pendingFlags.length > 0 && (
-            <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2">
-              <FlagIcon className="h-4 w-4 text-red-500" />
-              <span className="text-sm font-semibold text-red-600">
-                {pendingFlags.length} pending report{pendingFlags.length > 1 ? "s" : ""}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-6xl px-6 py-8 lg:px-10 space-y-8">
+    <div className="space-y-8">
 
         {/* ── Section 1: Key Metrics ── */}
         <section>
@@ -121,12 +99,22 @@ export default async function AdminPage() {
             <div className="card p-5">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Total Revenue</p>
-                  <p className="mt-2 text-2xl font-bold text-green-600">{formatPrice(totalRevenue._sum.price ?? 0)}</p>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Gross Revenue</p>
+                  <p className="mt-2 text-2xl font-bold text-green-600">{formatPrice(grossRevenue)}</p>
                   <p className="mt-1 text-xs text-gray-400">from delivered orders</p>
                 </div>
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50">
                   <WalletIcon className="h-4 w-4 text-green-600" />
+                </div>
+              </div>
+              <div className="mt-3 space-y-1 border-t border-gray-100 pt-3">
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Platform fee (10%)</span>
+                  <span className="font-semibold text-blue-600">{formatPrice(platformRevenue)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Runner payouts (90%)</span>
+                  <span className="font-medium text-gray-600">{formatPrice(runnerPayouts)}</span>
                 </div>
               </div>
             </div>
@@ -331,7 +319,5 @@ export default async function AdminPage() {
           </div>
         </section>
 
-      </div>
-    </div>
   );
 }
