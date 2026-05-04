@@ -22,12 +22,13 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  ordersAsCustomer Order[]  @relation("CustomerOrders")
-  ordersAsRunner   Order[]  @relation("RunnerOrders")
-  reviewsGiven     Review[] @relation("ReviewsGiven")
-  reviewsReceived  Review[] @relation("ReviewsReceived")
-  flagsGiven       Flag[]   @relation("FlagsGiven")
-  flagsReceived    Flag[]   @relation("FlagsReceived")
+  ordersAsCustomer Order[]        @relation("CustomerOrders")
+  ordersAsRunner   Order[]        @relation("RunnerOrders")
+  reviewsGiven     Review[]       @relation("ReviewsGiven")
+  reviewsReceived  Review[]       @relation("ReviewsReceived")
+  flagsGiven       Flag[]         @relation("FlagsGiven")
+  flagsReceived    Flag[]         @relation("FlagsReceived")
+  notifications    Notification[]
 }
 
 model Order {
@@ -78,4 +79,16 @@ model Review {
   order    Order @relation(fields: [orderId], references: [id])
   reviewer User  @relation("ReviewsGiven", fields: [reviewerId], references: [id])
   reviewee User  @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  orderId   String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

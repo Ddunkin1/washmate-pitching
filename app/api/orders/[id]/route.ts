@@ -117,5 +117,26 @@ export async function PATCH(
     },
   });
 
+  const CUSTOMER_NOTIFICATIONS: Record<string, { title: string; message: string }> = {
+    ACCEPTED:  { title: "Runner Accepted!", message: "A runner has accepted your laundry order." },
+    PICKED_UP: { title: "Laundry Picked Up", message: "Your laundry has been picked up by the runner." },
+    WASHING:   { title: "Now Washing", message: "Your laundry is currently being washed." },
+    READY:     { title: "Ready for Delivery", message: "Your laundry is clean and ready for delivery!" },
+    DELIVERED: { title: "Order Delivered!", message: "Your laundry has been delivered. Hope it's fresh!" },
+    CANCELLED: { title: "Order Cancelled", message: "Your laundry order has been cancelled." },
+  };
+
+  const notif = CUSTOMER_NOTIFICATIONS[newStatus];
+  if (notif) {
+    await db.notification.create({
+      data: {
+        userId: order.customerId,
+        title: notif.title,
+        message: notif.message,
+        orderId: order.id,
+      },
+    });
+  }
+
   return NextResponse.json(updated);
 }
