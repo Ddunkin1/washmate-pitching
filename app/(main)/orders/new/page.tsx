@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircleIcon, ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
+import { DateTimePicker } from "@/components/shared/date-time-picker";
 
 const LAUNDRY_ITEMS = [
   "T-Shirts",
@@ -274,12 +275,9 @@ export default function NewOrderPage() {
               </div>
               <div>
                 <label className="label">Preferred Pickup Time</label>
-                <input
-                  name="scheduledPickup"
-                  type="datetime-local"
-                  className="input"
+                <DateTimePicker
                   value={form.scheduledPickup}
-                  onChange={handleChange}
+                  onChange={(val) => setForm((prev) => ({ ...prev, scheduledPickup: val }))}
                 />
               </div>
             </div>

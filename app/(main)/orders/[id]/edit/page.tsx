@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
+import { parseItems } from "@/lib/utils";
 import { EditOrderForm } from "./edit-form";
 
 export default async function EditOrderPage({
@@ -17,7 +18,7 @@ export default async function EditOrderPage({
   if (order.customerId !== user.id) redirect(`/orders/${params.id}`);
   if (order.status !== "PENDING") redirect(`/orders/${params.id}`);
 
-  const items = JSON.parse(order.items) as string[];
+  const items = parseItems(order.items);
 
   return (
     <EditOrderForm

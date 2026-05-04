@@ -55,7 +55,9 @@ export async function PUT(
   if (!pickupLocation || !deliveryLocation) return NextResponse.json({ error: "Pickup and delivery locations are required." }, { status: 400 });
 
   const kilos = parseFloat(weight) || 1;
-  const price = kilos * 25;
+  const parsedItems: { name: string; qty: number }[] = Array.isArray(items) ? items : [];
+  const hasBedsheets = parsedItems.some((i) => i.name === "Bedsheets");
+  const price = kilos * 25 + (hasBedsheets ? 10 : 0);
 
   const updated = await db.order.update({
     where: { id: params.id },

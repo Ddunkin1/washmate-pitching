@@ -3,10 +3,8 @@ import { db } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeftIcon, PhoneIcon, MapPinIcon, WeightIcon } from "lucide-react";
-import { formatPrice, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, parseItems } from "@/lib/utils";
-import { OrderActions } from "./order-actions";
-import { ReviewForm } from "./review-form";
-import { OrderStatusRealtime } from "./order-status-realtime";
+import { formatPrice, formatDate, parseItems } from "@/lib/utils";
+import { OrderDetailClient } from "./order-detail-client";
 import { FlagRunnerButton } from "./flag-runner-button";
 
 export default async function OrderDetailPage({
@@ -48,13 +46,16 @@ export default async function OrderDetailPage({
           <h1 className="text-2xl font-bold text-gray-900">Order Details</h1>
           <p className="text-xs text-gray-400 font-mono">{order.id}</p>
         </div>
-        <span className={`ml-auto badge ${ORDER_STATUS_COLORS[order.status]} text-sm px-3 py-1`}>
-          {ORDER_STATUS_LABELS[order.status]}
-        </span>
-
       </div>
 
-      <OrderStatusRealtime orderId={order.id} initialStatus={order.status} />
+      <OrderDetailClient
+        orderId={order.id}
+        initialStatus={order.status}
+        isRunner={isRunner}
+        isCustomer={isCustomer}
+        isAssignedRunner={isAssignedRunner}
+        existingReview={!!existingReview}
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="card p-6">
@@ -149,22 +150,6 @@ export default async function OrderDetailPage({
           </div>
         </div>
       </div>
-
-      <div className="mt-6">
-        <OrderActions
-          orderId={order.id}
-          status={order.status}
-          isRunner={isRunner}
-          isCustomer={isCustomer}
-          isAssignedRunner={isAssignedRunner}
-        />
-      </div>
-
-      {order.status === "DELIVERED" && (isCustomer || isAssignedRunner) && !existingReview && (
-        <div className="mt-6">
-          <ReviewForm orderId={order.id} />
-        </div>
-      )}
 
       {isCustomer && order.runnerId && !existingFlag && (
         <div className="mt-4 flex justify-end">
