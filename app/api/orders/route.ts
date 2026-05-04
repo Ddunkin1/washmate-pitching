@@ -44,7 +44,9 @@ export async function POST(req: Request) {
   }
 
   const kilos = parseFloat(weight) || 1;
-  const price = kilos * 25;
+  const parsedItems: string[] = Array.isArray(items) ? items : [];
+  const bedsheetSurcharge = parsedItems.includes("Bedsheets") ? 10 : 0;
+  const price = kilos * 25 + bedsheetSurcharge;
 
   const order = await db.order.create({
     data: {

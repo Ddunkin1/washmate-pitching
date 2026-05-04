@@ -48,7 +48,10 @@ export default function NewOrderPage() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  const estimatedPrice = parseFloat(form.weight || "1") * 25;
+  const BEDSHEET_SURCHARGE = 10;
+  const hasBedsheets = selectedItems.includes("Bedsheets");
+  const basePrice = parseFloat(form.weight || "1") * 25;
+  const estimatedPrice = basePrice + (hasBedsheets ? BEDSHEET_SURCHARGE : 0);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -241,20 +244,35 @@ export default function NewOrderPage() {
 
         {/* Price Preview + Submit */}
         <div className="card p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Estimated Price</p>
-              <p className="text-3xl font-bold text-blue-600">
-                ₱{estimatedPrice.toFixed(2)}
-              </p>
-              <p className="text-xs text-gray-400">
-                {form.weight} kg × ₱25/kg
-              </p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <p className="mb-2 text-sm font-semibold text-gray-700">Price Breakdown</p>
+              <div className="space-y-1 text-sm text-gray-500">
+                <div className="flex justify-between">
+                  <span>{form.weight} kg × ₱25/kg</span>
+                  <span>₱{basePrice.toFixed(2)}</span>
+                </div>
+                {hasBedsheets && (
+                  <div className="flex justify-between text-orange-600">
+                    <span>Bedsheet surcharge</span>
+                    <span>+₱{BEDSHEET_SURCHARGE}.00</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t border-gray-100 pt-1 font-bold text-blue-600">
+                  <span>Total</span>
+                  <span className="text-2xl">₱{estimatedPrice.toFixed(2)}</span>
+                </div>
+              </div>
+              {hasBedsheets && (
+                <p className="mt-2 rounded-lg bg-orange-50 border border-orange-100 px-3 py-2 text-xs text-orange-600">
+                  Bedsheets require extra handling effort — a ₱50 surcharge applies.
+                </p>
+              )}
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary px-8 py-3 text-base"
+              className="btn-primary shrink-0 px-8 py-3 text-base"
             >
               {loading ? "Posting…" : "Post Order"}
             </button>
